@@ -150,7 +150,7 @@ compare depth predictions from PVDepth (top left), ViPE (top right), DA-2
 (bottom left), and UniK3D (bottom right). PVDepth produces stable and
 temporally consistent depth predictions throughout the video.
 
-https://github.com/user-attachments/assets/b4e61b9d-ba71-4beb-a78e-5fbcf1ace922
+https://github.com/user-attachments/assets/4edbc5f8-fd76-42f8-bcf8-7ed343957ad8
 
 ## Limitations
 
