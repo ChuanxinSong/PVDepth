@@ -152,6 +152,8 @@ temporally consistent depth predictions throughout the video.
 
 https://github.com/user-attachments/assets/4edbc5f8-fd76-42f8-bcf8-7ed343957ad8
 
+If the embedded video does not play, you can [view or download the video directly](asset/vis_video_comparison.mp4).
+
 ## Limitations
 
 - **Specular reflections.** PVDepth struggles with strongly reflective
