@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+.cache/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+env/
+ENV/
+.python-version
+build/
+dist/
+*.egg-info/
+.eggs/
+*.egg
+
+# Editors and operating systems
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+.ipynb_checkpoints/
+
+# Local configuration
+.env
+.env.*
+/paths.env
+/.agents/
+/.codex/
+
+# Logs and experiment tracking
+*.log
+/logs/
+/wandb/
+
+# Generated outputs and caches
+/outputs/
+/carla_benchmark_results/
+/sft_pano_depthcrafter*/
+/spherical_grids/
+/depth_eval/results/
