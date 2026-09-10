@@ -111,6 +111,36 @@ def depth2disparity(depth, return_mask=False):
         return disparity
 
 
+EVAL_PROTOCOLS = ("bounded", "legacy")
+
+
+def disparity_to_depth_for_evaluation(
+    disparity,
+    eval_protocol="bounded",
+    min_depth=0.1,
+    max_depth=80.0,
+):
+    """Convert aligned disparity to depth under the selected protocol."""
+    if eval_protocol not in EVAL_PROTOCOLS:
+        raise ValueError(
+            f"Unknown eval_protocol '{eval_protocol}'. "
+            f"Expected one of {EVAL_PROTOCOLS}."
+        )
+
+    if eval_protocol == "legacy":
+        return depth2disparity(disparity)
+
+    if max_depth is None or not np.isfinite(max_depth) or max_depth <= 0:
+        raise ValueError("bounded evaluation requires a positive finite max_depth")
+    if not np.isfinite(min_depth) or min_depth <= 0 or min_depth >= max_depth:
+        raise ValueError("bounded evaluation requires 0 < min_depth < max_depth")
+
+    min_disparity = 1.0 / max_depth
+    bounded_disparity = torch.clamp(disparity, min=min_disparity)
+    predicted_depth = torch.reciprocal(bounded_disparity)
+    return torch.clamp(predicted_depth, min=min_depth, max=max_depth)
+
+
 def absolute_error_loss(params, predicted_depth, ground_truth_depth):
     s, t = params
 
@@ -208,6 +238,8 @@ def depth_evaluation(
     use_gpu=False,
     align_with_scale=False,
     disp_input=False,
+    min_depth=0.1,
+    eval_protocol="bounded",
 ):
     """
     Evaluate the depth map using various metrics and return a depth error parity map, with an option for least squares alignment.
@@ -216,12 +248,27 @@ def depth_evaluation(
         predicted_depth (numpy.ndarray or torch.Tensor): The predicted depth map.
         ground_truth_depth (numpy.ndarray or torch.Tensor): The ground truth depth map.
         max_depth (float): The maximum depth value to consider. Default is 80 meters.
+        min_depth (float): The minimum depth value to consider. Default is 0.1 meters.
+        eval_protocol (str): ``bounded`` for numerically safe prediction depths,
+            or ``legacy`` to reproduce the original released evaluator.
         align_with_lstsq (bool): If True, perform least squares alignment of the predicted depth with ground truth.
 
     Returns:
         dict: A dictionary containing the evaluation metrics.
         torch.Tensor: The depth error parity map.
     """
+    if eval_protocol not in EVAL_PROTOCOLS:
+        raise ValueError(
+            f"Unknown eval_protocol '{eval_protocol}'. "
+            f"Expected one of {EVAL_PROTOCOLS}."
+        )
+    if not np.isfinite(min_depth) or min_depth <= 0:
+        raise ValueError("min_depth must be positive and finite")
+    if max_depth is not None and (
+        not np.isfinite(max_depth) or max_depth <= min_depth
+    ):
+        raise ValueError("max_depth must be finite and greater than min_depth")
+
     if isinstance(predicted_depth_original, np.ndarray):
         predicted_depth_original = torch.from_numpy(predicted_depth_original)
     if isinstance(ground_truth_depth_original, np.ndarray):
@@ -257,11 +304,11 @@ def depth_evaluation(
     #     mask = ground_truth_depth_original > 0
 
     if max_depth is not None:
-        mask = (ground_truth_depth_original > 1e-1) & (
+        mask = (ground_truth_depth_original > min_depth) & (
             ground_truth_depth_original < max_depth
         )
     else:
-        mask = ground_truth_depth_original > 1e-1
+        mask = ground_truth_depth_original > min_depth
 
     predicted_depth = predicted_depth_original[mask]
     ground_truth_depth = ground_truth_depth_original[mask]
@@ -357,7 +404,12 @@ def depth_evaluation(
     if disp_input:
         # convert back to depth
         ground_truth_depth = real_gt
-        predicted_depth = depth2disparity(predicted_depth)
+        predicted_depth = disparity_to_depth_for_evaluation(
+            predicted_depth,
+            eval_protocol=eval_protocol,
+            min_depth=min_depth,
+            max_depth=max_depth,
+        )
 
     # Clip the predicted depth values
     if post_clip_min is not None:
@@ -398,39 +450,36 @@ def depth_evaluation(
     threshold_2 = torch.mean((max_ratio < 1.25**2).float()).item()
     threshold_3 = torch.mean((max_ratio < 1.25**3).float()).item()
 
-    # Compute the depth error parity map
+    # Apply the same alignment and conversion to the full prediction map.
     if metric_scale:
         predicted_depth_original = predicted_depth_original
-        if disp_input:
-            predicted_depth_original = depth2disparity(predicted_depth_original)
-        depth_error_parity_map = (
-            torch.abs(predicted_depth_original - ground_truth_depth_original)
-            / ground_truth_depth_original
-        )
     elif align_with_lstsq or align_with_lad or align_with_lad2:
         predicted_depth_original = predicted_depth_original * s + t
-        if disp_input:
-            predicted_depth_original = depth2disparity(predicted_depth_original)
-        depth_error_parity_map = (
-            torch.abs(predicted_depth_original - ground_truth_depth_original)
-            / ground_truth_depth_original
-        )
     elif align_with_scale:
         predicted_depth_original = predicted_depth_original * s
-        if disp_input:
-            predicted_depth_original = depth2disparity(predicted_depth_original)
-        depth_error_parity_map = (
-            torch.abs(predicted_depth_original - ground_truth_depth_original)
-            / ground_truth_depth_original
-        )
     else:
         predicted_depth_original = predicted_depth_original * scale_factor
-        if disp_input:
-            predicted_depth_original = depth2disparity(predicted_depth_original)
-        depth_error_parity_map = (
-            torch.abs(predicted_depth_original - ground_truth_depth_original)
-            / ground_truth_depth_original
+
+    if disp_input:
+        predicted_depth_original = disparity_to_depth_for_evaluation(
+            predicted_depth_original,
+            eval_protocol=eval_protocol,
+            min_depth=min_depth,
+            max_depth=max_depth,
         )
+    if post_clip_min is not None:
+        predicted_depth_original = torch.clamp(
+            predicted_depth_original, min=post_clip_min
+        )
+    if post_clip_max is not None:
+        predicted_depth_original = torch.clamp(
+            predicted_depth_original, max=post_clip_max
+        )
+
+    depth_error_parity_map = (
+        torch.abs(predicted_depth_original - ground_truth_depth_original)
+        / ground_truth_depth_original
+    )
 
     # Reshape the depth_error_parity_map back to the original image size
     depth_error_parity_map_full = torch.zeros_like(ground_truth_depth_original)

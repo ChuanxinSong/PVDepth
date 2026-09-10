@@ -19,6 +19,8 @@ GPU_ID="${GPU_ID:-0}"
 PRED_BASE_DIR="${PRED_BASE_DIR:-${PROJECT_ROOT}/carla_benchmark_results/pvdepth}"
 OUTPUT_DIR="${OUTPUT_DIR:-${SCRIPT_DIR}/results/pvdepth}"
 ALIGN_METHOD="${ALIGN_METHOD:-scale&shift}"
+EVAL_PROTOCOL="${EVAL_PROTOCOL:-bounded}"
+MIN_DEPTH="${MIN_DEPTH:-0.1}"
 MAX_DEPTH="${MAX_DEPTH:-80.0}"
 RESOLUTION="${RESOLUTION:-1024}"
 PYTHON_BIN="${PYTHON_BIN:-python}"
@@ -30,7 +32,7 @@ JSON_FILES=(
     setting_dynamic_fps20_len110.json
 )
 
-echo "Evaluating PVDepth predictions with ${ALIGN_METHOD} alignment on GPU ${GPU_ID}."
+echo "Evaluating PVDepth predictions with ${ALIGN_METHOD} alignment and the ${EVAL_PROTOCOL} protocol on GPU ${GPU_ID}."
 
 CUDA_VISIBLE_DEVICES="${GPU_ID}" "${PYTHON_BIN}" "${SCRIPT_DIR}/eval_alone.py" \
     --json_files "${JSON_FILES[@]}" \
@@ -41,6 +43,8 @@ CUDA_VISIBLE_DEVICES="${GPU_ID}" "${PYTHON_BIN}" "${SCRIPT_DIR}/eval_alone.py" \
     --town_name "town0210" \
     --resolution "${RESOLUTION}" \
     --align_method "${ALIGN_METHOD}" \
+    --eval_protocol "${EVAL_PROTOCOL}" \
+    --min_depth "${MIN_DEPTH}" \
     --max_depth "${MAX_DEPTH}"
 
 echo "Evaluation complete. Results saved to: ${OUTPUT_DIR}"

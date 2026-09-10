@@ -143,6 +143,53 @@ To evaluate a custom checkpoint, set `UNET_PATH` and `OUTPUT_ROOT_DIR` in
 `run_infer_town0210.sh`, run inference, and pass the matching output directory
 through `PRED_BASE_DIR`.
 
+### Evaluation Protocol Update (2026.09.10)
+
+We fixed a numerical instability in the PanoCARLA depth-evaluation pipeline.
+The scale-and-shift alignment is performed in disparity space, where the
+aligned disparity can cross or approach zero. Taking its reciprocal can then
+produce extremely large predicted depths and disproportionately affect
+unbounded metrics such as Abs Rel, Sq Rel, and RMSE.
+
+The evaluator now supports two protocols:
+
+- `bounded` (default) lower-bounds aligned disparity by `1 / max_depth` before
+  inversion, then clips predicted depth to `[min_depth, max_depth]`.
+- `legacy` preserves the behavior of the originally released evaluator and
+  should be used to reproduce the evaluation protocol of the paper results.
+
+The default PanoCARLA evaluation range is `[0.1, 80]` meters. Both protocols
+use exactly the same per-clip LAD2 scale-and-shift alignment; they differ only
+in the aligned-disparity-to-depth conversion. Results from different protocols
+should not be compared without explicitly identifying the protocol.
+
+Run the corrected default protocol with:
+
+```bash
+bash depth_eval/run_eval.sh
+```
+
+Run the legacy protocol with:
+
+```bash
+EVAL_PROTOCOL=legacy bash depth_eval/run_eval.sh
+```
+
+The following results use the original paper's PVDepth inference outputs, the
+default LAD2 settings (`lr=1e-4`, `max_iters=1000`), and the
+`0.1 < depth < 80` ground-truth validity mask:
+
+| Split | Protocol | Abs Rel | Sq Rel | RMSE | Log RMSE | &delta;<sub>1</sub> |
+|---|---|---:|---:|---:|---:|---:|
+| dynamic_fps02_len50 | legacy | 0.211 | 4.683 | 8.949 | 0.257 | 0.789 |
+| dynamic_fps02_len50 | bounded | 0.203 | 2.167 | 6.691 | 0.251 | 0.790 |
+| dynamic_fps10_len90 | legacy | 0.204 | 841.520 | 50.292 | 0.271 | 0.787 |
+| dynamic_fps10_len90 | bounded | 0.189 | 1.802 | 6.109 | 0.234 | 0.789 |
+| dynamic_fps20_len110 | legacy | 0.181 | 2340.891 | 54.791 | 0.242 | 0.818 |
+| dynamic_fps20_len110 | bounded | 0.163 | 1.479 | 5.859 | 0.216 | 0.819 |
+
+We thank **Qimo** for identifying and carefully diagnosing this issue.
+
 ## Visualization Comparison
 
 The center panel shows the input panoramic video, while the surrounding panels

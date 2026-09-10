@@ -9,7 +9,7 @@ import sys
 from typing import Any, Dict
 import argparse
 from concurrent.futures import ThreadPoolExecutor
-from depth import depth_evaluation
+from depth import EVAL_PROTOCOLS, depth_evaluation
 import re
 from tqdm import tqdm
 
@@ -61,8 +61,13 @@ def get_args():
                         help='Fixed error-map maximum for cross-model visualization. '
                              'Defaults to the 98th percentile of each sequence.')
 
-    parser.add_argument('--max_depth', type=float, default=999.0,
-                        help='Maximum valid depth used for evaluation. Defaults to 999.0.')
+    parser.add_argument('--max_depth', type=float, default=80.0,
+                        help='Maximum valid depth used for evaluation. Defaults to 80.0.')
+    parser.add_argument('--min_depth', type=float, default=0.1,
+                        help='Minimum valid depth used for evaluation. Defaults to 0.1.')
+    parser.add_argument('--eval_protocol', type=str, default="bounded",
+                        choices=EVAL_PROTOCOLS,
+                        help='Evaluation protocol. Use "legacy" to reproduce the original evaluator.')
     
     return parser.parse_args()
 
@@ -192,6 +197,8 @@ def run_evaluation(json_split_file: str, pred_root_dir: str, output_csv_file: st
 
     depth_evaluation_kwargs = EVAL_KWARGS.copy()
     depth_evaluation_kwargs["max_depth"] = args.max_depth
+    depth_evaluation_kwargs["min_depth"] = args.min_depth
+    depth_evaluation_kwargs["eval_protocol"] = args.eval_protocol
     
     if args.align_method == "scale&shift":
         depth_evaluation_kwargs["align_with_lad2"] = True
@@ -215,7 +222,11 @@ def run_evaluation(json_split_file: str, pred_root_dir: str, output_csv_file: st
         os.makedirs(error_maps_base_dir, exist_ok=True)
         logger.info(f"Error maps will be saved to: {error_maps_base_dir}")
 
-    logger.info(f"Evaluating {len(seq_list)} sequences.")
+    logger.info(
+        f"Evaluating {len(seq_list)} sequences with the "
+        f"{args.eval_protocol} protocol over "
+        f"({args.min_depth}, {args.max_depth}) meters."
+    )
     
     for idx_seq, seq in enumerate(tqdm(seq_list, desc=f"Evaluating {osp.basename(json_split_file)}"), start=1):
         seq_gt_paths = gt_paths[seq]
@@ -339,7 +350,8 @@ def main_loop(args: argparse.Namespace):
         current_max_depth = args.max_depth
         output_csv_filename = (
             f"{setting}_{fps_str}_{len_str}_res{args.resolution}"
-            f"-metric-{args.align_method}_maxdepth{current_max_depth}.csv"
+            f"-metric-{args.align_method}_maxdepth{current_max_depth}"
+            f"-protocol-{args.eval_protocol}.csv"
         )
         output_csv_full_path = osp.join(args.output_dir, output_csv_filename)
         
