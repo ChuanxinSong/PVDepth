@@ -5,29 +5,41 @@
 <a href="https://openreview.net/pdf?id=HwYgnZjxUB"><img src="https://img.shields.io/badge/Paper-OpenReview-b31b1b.svg" alt="Paper"></a>
 <a href="https://huggingface.co/datasets/Soon122/PanoCARLA"><img src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-PanoCARLA_Dataset-blue" alt="Dataset"></a>
 <a href="https://huggingface.co/Soon122/PVDepth"><img src='https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Model_Weights-orange' alt="Weights"></a>
+<a href="https://github.com/ChuanxinSong/PanoCARLA"><img src="https://img.shields.io/badge/GitHub-Data_Collection-181717?logo=github" alt="Data Collection"></a>
 
 <a href="https://scholar.google.com/citations?user=NhZxUX0AAAAJ&hl=zh-CN">Chuanxin Song</a>,
 <a href="https://scholar.google.com/citations?user=CFMuFGoAAAAJ&hl=zh-CN">Peixi Peng</a>
 </div>
 
-🤗 If you find **PVDepth** or **PanoCARLA** useful, **please help ⭐ this repo**, which is important to open-source projects. Thanks!
+**Temporally consistent depth for panoramic videos.**
 
-## Introduction
+PVDepth estimates relative depth from panoramic videos, addressing
+equirectangular distortion and temporal consistency. Explore the results below,
+[try the pretrained model](#quick-start), or build on our
+[panoramic datasets](#dataset--data-collection) and open-source
+[data collection pipeline](https://github.com/ChuanxinSong/PanoCARLA).
 
-We introduce **[PanoCARLA](https://huggingface.co/datasets/Soon122/PanoCARLA)**, a large-scale synthetic RGB-D panoramic video dataset, and **PVDepth**, a generative framework for panoramic video depth estimation. By addressing ERP-specific spatial distortions and temporal non-linear dynamics, PVDepth produces accurate and temporally consistent depth sequences.
+## Visualization Comparison
 
-## Poster
+The center panel shows the input panoramic video, surrounded by depth predictions
+from **PVDepth** (top left), ViPE (top right), DA-2 (bottom left), and UniK3D
+(bottom right).
 
-<p align="center">
-  <img src="asset/PVDepth_Poster.png" alt="PVDepth ICML 2026 Poster" width="100%">
-</p>
+https://github.com/user-attachments/assets/4edbc5f8-fd76-42f8-bcf8-7ed343957ad8
 
-## Checklist / TODOs
+If the embedded video does not play, you can [view or download the video directly](asset/vis_video_comparison.mp4).
 
-- [x] Release the PanoCARLA dataset
-- [x] Release the training code and evaluation scripts
-- [x] Release the model weights
-- [ ] Open-source the panoramic data collection pipeline
+If you find PVDepth or our panoramic data resources useful, consider giving this repository a ⭐.
+
+## Updates
+
+- **Data collection pipeline released:** reproduce our capture workflow or record
+  your own panoramic data with the [PanoCARLA recording scripts and guides](https://github.com/ChuanxinSong/PanoCARLA).
+- **PanoCARLA-Static released:** we additionally provide a static-scene variant
+  of PanoCARLA, captured without dynamic vehicles or pedestrians while retaining
+  camera motion, for research that assumes a static environment. See the
+  [dataset page](https://huggingface.co/datasets/Soon122/PanoCARLA-Static) for details
+  and download instructions.
 
 ## Installation
 
@@ -70,9 +82,11 @@ custom checkpoint, pass its UNet directory as the second argument:
 GPU_ID=0 bash run_infer_any.sh <input_path> path/to/unet [output_dir]
 ```
 
-## Dataset
+## Dataset & Data Collection
 
-The [PanoCARLA dataset](https://huggingface.co/datasets/Soon122/PanoCARLA) is available on Hugging Face.
+The [PanoCARLA dataset](https://huggingface.co/datasets/Soon122/PanoCARLA)
+provides large-scale synthetic RGB-D panoramic videos for PVDepth training and
+evaluation and is available on Hugging Face.
 
 Download the dataset with the Hugging Face CLI:
 
@@ -94,6 +108,14 @@ cp paths.example.env paths.env
 ```
 
 Update the paths in `paths.env` before starting training.
+
+### Build Your Own Panoramic Dataset
+
+If you want to reproduce our data collection workflow or capture your own
+panoramic data, please refer to our open-source
+[PanoCARLA data collection pipeline](https://github.com/ChuanxinSong/PanoCARLA).
+It provides recording scripts and guides covering trajectory recording and
+panoramic RGB-D generation, which you can adapt to your own routes and scenes.
 
 ## Training
 
@@ -190,16 +212,11 @@ default LAD2 settings (`lr=1e-4`, `max_iters=1000`), and the
 
 We thank **Qimo** for identifying and carefully diagnosing this issue.
 
-## Visualization Comparison
+## Poster
 
-The center panel shows the input panoramic video, while the surrounding panels
-compare depth predictions from PVDepth (top left), ViPE (top right), DA-2
-(bottom left), and UniK3D (bottom right). PVDepth produces stable and
-temporally consistent depth predictions throughout the video.
-
-https://github.com/user-attachments/assets/4edbc5f8-fd76-42f8-bcf8-7ed343957ad8
-
-If the embedded video does not play, you can [view or download the video directly](asset/vis_video_comparison.mp4).
+<p align="center">
+  <img src="asset/PVDepth_Poster.png" alt="PVDepth ICML 2026 Poster" width="100%">
+</p>
 
 ## Limitations
 
