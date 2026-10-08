@@ -117,6 +117,11 @@ panoramic data, please refer to our open-source
 It provides recording scripts and guides covering trajectory recording and
 panoramic RGB-D generation, which you can adapt to your own routes and scenes.
 
+For research that requires static scenes, we also provide
+[PanoCARLA-Static](https://huggingface.co/datasets/Soon122/PanoCARLA-Static),
+captured with the same pipeline without dynamic vehicles or pedestrians while
+retaining camera motion. See the dataset page for details and download instructions.
+
 ## Training
 
 PVDepth uses a two-stage training procedure:
