@@ -1,3 +1,5 @@
+
+
 <div align="center">
 <h1>PVDepth: Panoramic Video Depth Estimation via Geometry-Aware Spatiotemporal Adaptation</h1>
 
@@ -107,7 +109,7 @@ For training, set `data_root` to `path/to/PanoCARLA` and `h5_data_root` to
 cp paths.example.env paths.env
 ```
 
-Update the paths in `paths.env` before starting training.
+Update the paths in `paths.env` before starting training or benchmark evaluation.
 
 ### Build Your Own Panoramic Dataset
 
