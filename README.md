@@ -1,8 +1,8 @@
 <div align="center">
 <h1>PVDepth: Panoramic Video Depth Estimation via Geometry-Aware Spatiotemporal Adaptation</h1>
 
-<img src="https://img.shields.io/badge/ICML-2026-4b44ce.svg" alt="ICML 2026">
-<a href="https://openreview.net/pdf?id=HwYgnZjxUB"><img src="https://img.shields.io/badge/Paper-OpenReview-b31b1b.svg" alt="Paper"></a>
+<a href="https://chuanxinsong.github.io/pvdepth-project-page/"><img src="https://img.shields.io/badge/Project-Page-blue.svg" alt="Project Page"></a>
+<a href="https://proceedings.mlr.press/v306/song26u.html"><img src="https://img.shields.io/badge/Paper-PMLR-b31b1b.svg" alt="Paper"></a>
 <a href="https://huggingface.co/datasets/Soon122/PanoCARLA"><img src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-PanoCARLA_Dataset-blue" alt="Dataset"></a>
 <a href="https://huggingface.co/Soon122/PVDepth"><img src='https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Model_Weights-orange' alt="Weights"></a>
 <a href="https://github.com/ChuanxinSong/PanoCARLA"><img src="https://img.shields.io/badge/GitHub-Data_Collection-181717?logo=github" alt="Data Collection"></a>
@@ -19,6 +19,8 @@ equirectangular distortion and temporal consistency. Explore the results below,
 [panoramic datasets](#dataset--data-collection) and open-source
 [data collection pipeline](https://github.com/ChuanxinSong/PanoCARLA).
 
+If you find PVDepth or our panoramic data resources useful, consider giving this repository a ⭐.
+
 ## Visualization Comparison
 
 The center panel shows the input panoramic video, surrounded by depth predictions
@@ -28,8 +30,6 @@ from **PVDepth** (top left), ViPE (top right), DA-2 (bottom left), and UniK3D
 https://github.com/user-attachments/assets/4edbc5f8-fd76-42f8-bcf8-7ed343957ad8
 
 If the embedded video does not play, you can [view or download the video directly](asset/vis_video_comparison.mp4).
-
-If you find PVDepth or our panoramic data resources useful, consider giving this repository a ⭐.
 
 ## Updates
 
